@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "8Aeo3v9aODoijqDRlF/C9rrdH80Al4/c7p2cI4J9E4c=",
+  "Source": "RESTApi",
+  "BasePath": "_content/RESTApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

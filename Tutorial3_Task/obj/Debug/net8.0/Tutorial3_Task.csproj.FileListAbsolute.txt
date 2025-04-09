@@ -1,0 +1,15 @@
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\Tutorial3_Task.exe
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\input.txt
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\Tutorial3_Task.deps.json
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\Tutorial3_Task.runtimeconfig.json
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\Tutorial3_Task.dll
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\bin\Debug\net8.0\Tutorial3_Task.pdb
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.AssemblyInfoInputs.cache
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.AssemblyInfo.cs
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.csproj.CoreCompileInputs.cache
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.dll
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\refint\Tutorial3_Task.dll
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.pdb
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.genruntimeconfig.cache
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\ref\Tutorial3_Task.dll
