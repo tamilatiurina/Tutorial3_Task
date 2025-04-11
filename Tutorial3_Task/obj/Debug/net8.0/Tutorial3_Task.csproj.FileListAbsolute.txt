@@ -13,3 +13,4 @@ C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.pdb
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.genruntimeconfig.cache
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\ref\Tutorial3_Task.dll
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\obj\Debug\net8.0\Tutorial3_Task.sourcelink.json

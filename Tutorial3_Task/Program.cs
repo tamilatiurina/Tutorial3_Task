@@ -272,7 +272,7 @@ public abstract class Device
     }
 }
 
-class PersonalComputer : Device
+public class PersonalComputer : Device
 {
     public string? OperatingSystem { get; set; }
     public PersonalComputer() { }
@@ -307,7 +307,7 @@ class PersonalComputer : Device
     private bool CheckId(string id) => id.Contains("P-");
 }
 
-class Smartwatch : Device, IPowerNotify
+public class Smartwatch : Device, IPowerNotify
 {
     private int _batteryLevel;
 
@@ -369,7 +369,7 @@ class Smartwatch : Device, IPowerNotify
     private bool CheckId(string id) => id.Contains("E-");
 }
 
-class Embedded : Device
+public class Embedded : Device
 {
     public string NetworkName { get; set; }
     private string _ipAddress;
@@ -380,7 +380,10 @@ class Embedded : Device
         get => _ipAddress;
         set
         {
-            Regex ipRegex = new Regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$");
+            Regex ipRegex = new Regex(@"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\." +
+                                      @"(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\." +
+                                      @"(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\." +
+                                      @"(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$");
             if (ipRegex.IsMatch(value))
             {
                 _ipAddress = value;

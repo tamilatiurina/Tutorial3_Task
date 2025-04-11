@@ -234,3 +234,4 @@ C:\Users\Home\Downloads\S30844_REST\tutorial3_template\RESTApi\bin\Debug\net8.0\
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\RESTApi\bin\Debug\net8.0\input.txt
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\RESTApi\bin\Debug\net8.0\Tutorial3_Task.dll
 C:\Users\Home\Downloads\S30844_REST\tutorial3_template\RESTApi\bin\Debug\net8.0\Tutorial3_Task.pdb
+C:\Users\Home\Downloads\S30844_REST\tutorial3_template\RESTApi\obj\Debug\net8.0\RESTApi.sourcelink.json
