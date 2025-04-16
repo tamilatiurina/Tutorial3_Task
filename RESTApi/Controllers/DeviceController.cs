@@ -23,7 +23,7 @@ namespace RESTApi.Controllers
         
 
         // GET: api/device/{id}
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = nameof(GetDeviceById))]
         public IResult GetDeviceById(string id)
         {
             var device = _manager.GetDeviceById(id);

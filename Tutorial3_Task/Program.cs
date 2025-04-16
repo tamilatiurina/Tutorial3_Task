@@ -389,7 +389,10 @@ public class Embedded : Device
                 _ipAddress = value;
             }
 
-            throw new ArgumentException("Wrong IP address format.");
+            else
+            {
+                throw new ArgumentException("Wrong IP address format.");
+            }
         }
     }
     
