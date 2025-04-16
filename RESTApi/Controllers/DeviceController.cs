@@ -12,24 +12,25 @@ namespace RESTApi.Controllers
         private static DeviceManager _manager = new(@"C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\input.txt");
         // GET: api/device
         [HttpGet]
-        public IActionResult GetAllDevices()
+        public IResult GetAllDevices()
         {
             var devices = _manager
                 .GetAllDevices()
                 .Select(d => new { d.Id, d.Name, d.IsEnabled });
 
-            return Ok(devices);
+            return Results.Ok(devices);
         }
+        
 
         // GET: api/device/{id}
         [HttpGet("{id}")]
-        public IActionResult GetDeviceById(string id)
+        public IResult GetDeviceById(string id)
         {
             var device = _manager.GetDeviceById(id);
             if (device == null)
-                return NotFound($"Device with ID {id} not found.");
+                return Results.NotFound($"Device with ID {id} not found.");
 
-            return Ok(device);
+            return Results.Ok(device);
         }
 
         // POST: api/device
@@ -51,44 +52,44 @@ namespace RESTApi.Controllers
         }*/
         
         [HttpPost("smartwatch")]
-        public IActionResult AddSmartwatch([FromBody] Smartwatch smartwatch)
+        public IResult AddSmartwatch([FromBody] Smartwatch smartwatch)
         {
             try
             {
                 _manager.AddDevice(smartwatch);
-                return CreatedAtAction(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
+                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
 
         [HttpPost("pc")]
-        public IActionResult AddPersonalComputer([FromBody] PersonalComputer pc)
+        public IResult AddPersonalComputer([FromBody] PersonalComputer pc)
         {
             try
             {
                 _manager.AddDevice(pc);
-                return CreatedAtAction(nameof(GetDeviceById), new { id = pc.Id }, pc);
+                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
 
         [HttpPost("embedded")]
-        public IActionResult AddEmbeddedDevice([FromBody] Embedded embedded)
+        public IResult AddEmbeddedDevice([FromBody] Embedded embedded)
         {
             try
             {
                 _manager.AddDevice(embedded);
-                return CreatedAtAction(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
+                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
 
@@ -111,75 +112,75 @@ namespace RESTApi.Controllers
         }*/
         
         [HttpPut("smartwatch/{id}")]
-        public IActionResult EditSmartwatch(string id, [FromBody] Smartwatch smartwatch)
+        public IResult EditSmartwatch(string id, [FromBody] Smartwatch smartwatch)
         {
             if (id != smartwatch.Id)
             {
-                return BadRequest("ID in URL does not match ID in body.");
+                return Results.BadRequest("ID in URL does not match ID in body.");
             }
 
             try
             {
                 _manager.EditDevice(smartwatch);
-                return AcceptedAtAction(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
+                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
         
         [HttpPut("pc/{id}")]
-        public IActionResult EditPersonalComputer(string id, [FromBody] PersonalComputer pc)
+        public IResult EditPersonalComputer(string id, [FromBody] PersonalComputer pc)
         {
             if (id != pc.Id)
             {
-                return BadRequest("ID in URL does not match ID in body.");
+                return Results.BadRequest("ID in URL does not match ID in body.");
             }
 
             try
             {
                 _manager.EditDevice(pc);
-                return AcceptedAtAction(nameof(GetDeviceById), new { id = pc.Id }, pc);
+                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
         
         [HttpPut("embedded/{id}")]
-        public IActionResult EditEmbedded(string id, [FromBody] Embedded embedded)
+        public IResult EditEmbedded(string id, [FromBody] Embedded embedded)
         {
             if (id != embedded.Id)
             {
-                return BadRequest("ID in URL does not match ID in body.");
+                return Results.BadRequest("ID in URL does not match ID in body.");
             }
 
             try
             {
                 _manager.EditDevice(embedded);
-                return AcceptedAtAction(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
+                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Results.BadRequest(ex.Message);
             }
         }
 
 
         // DELETE: api/device/{id}
         [HttpDelete("{id}")]
-        public IActionResult DeleteDevice(string id)
+        public IResult DeleteDevice(string id)
         {
             try
             {
                 _manager.RemoveDeviceById(id);
-                return NoContent();
+                return Results.NoContent();
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return Results.NotFound(ex.Message);
             }
         }
     }
