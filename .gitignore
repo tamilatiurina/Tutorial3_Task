@@ -1,0 +1,55 @@
+# Ignore build output directories
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Ignore the .vs folder (Visual Studio specific)
+.vs/
+
+# Ignore the .idea folder (JetBrains specific)
+.idea/
+
+# Ignore the .vscode folder (VS Code specific)
+.vscode/
+
+# Ignore the Scratch folder (if it exists)
+scratch/
+
+# Ignore package-related files
+*.nupkg
+packages/
+
+# Ignore logs
+*.log
+
+# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/contentModel.xml
+/modules.xml
+/projectSettingsUpdater.xml
+/.idea.Tutorial3_Task.iml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+./idea
+
+./src/RESTApi/bin/
+./src/RESTApi/Properties/
+./src/RESTApi/obj/
+./src/RESTApi/RESTApi.http
+./src/RESTApi/appsettings.Development.json
+./src/RESTApi/appsettings.json
+
+./src/Tutorial3_Task/bin/
+./src/Tutorial3_Task/obj/
+
+.DS_Store
