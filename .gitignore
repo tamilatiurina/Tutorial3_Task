@@ -42,14 +42,14 @@ packages/
 /dataSources.local.xml
 ./idea
 
-./src/RESTApi/bin/
-./src/RESTApi/Properties/
-./src/RESTApi/obj/
-./src/RESTApi/RESTApi.http
-./src/RESTApi/appsettings.Development.json
-./src/RESTApi/appsettings.json
+src/RESTApi/bin/
+src/RESTApi/Properties/
+src/RESTApi/obj/
+src/RESTApi/RESTApi.http
+src/RESTApi/appsettings.Development.json
+src/RESTApi/appsettings.json
 
-./src/Tutorial3_Task/bin/
-./src/Tutorial3_Task/obj/
+src/Tutorial3_Task/bin/
+src/Tutorial3_Task/obj/
 
 .DS_Store
