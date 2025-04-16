@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tutorial3_Task;
-using static Tutorial3_Task.DeviceStorage;
 
 namespace RESTApi.Controllers
 {
