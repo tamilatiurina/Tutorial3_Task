@@ -1,5 +1,9 @@
+using Tutorial3_Task;
+
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddSingleton<DeviceManager>(new DeviceManager(connectionString));
 // Add services to the container.
 
 builder.Services.AddControllers();

@@ -1,3 +1,4 @@
+using Devices.Infrastructure.Devices.Infrastraucture;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tutorial3_Task;
@@ -8,7 +9,15 @@ namespace RESTApi.Controllers
     [ApiController]
     public class DeviceController : ControllerBase
     {
-        private static DeviceManager _manager = new(@"C:\Users\Home\Downloads\S30844_REST\tutorial3_template\Tutorial3_Task\input.txt");
+        private readonly DeviceManager _manager;
+
+        // Constructor that accepts DeviceManager via DI
+        public DeviceController(DeviceManager manager)
+        {
+            _manager = manager;
+        }
+
+        
         // GET: api/device
         [HttpGet]
         public IResult GetAllDevices()
@@ -19,43 +28,29 @@ namespace RESTApi.Controllers
 
             return Results.Ok(devices);
         }
-        
 
         // GET: api/device/{id}
         [HttpGet("{id}", Name = nameof(GetDeviceById))]
         public IResult GetDeviceById(string id)
         {
-            var device = _manager.GetDeviceById(id);
-            if (device == null)
-                return Results.NotFound($"Device with ID {id} not found.");
-
-            return Results.Ok(device);
-        }
-
-        // POST: api/device
-        /*[HttpPost]
-        public IActionResult CreateDevice([FromBody] Device device)
-        {
             try
             {
-               _manager.AddDevice(device);
-                return CreatedAtAction(nameof(GetDeviceById), new { id = device.Id }, device);
+                var device = _manager.GetDeviceById(id);
+                return Results.Ok(device);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return Results.NotFound(ex.Message);
             }
-            catch (Exception ex){
-                return StatusCode(500, ex.Message);
-            }
-        }*/
-        
+        }
+
+        // POST: api/device/smartwatch
         [HttpPost("smartwatch")]
         public IResult AddSmartwatch([FromBody] Smartwatch smartwatch)
         {
             try
             {
-                _manager.AddDevice(smartwatch);
+                _manager.AddDevice(smartwatch, "smartwatch");
                 return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
             }
             catch (Exception ex)
@@ -64,12 +59,13 @@ namespace RESTApi.Controllers
             }
         }
 
+        // POST: api/device/pc
         [HttpPost("pc")]
         public IResult AddPersonalComputer([FromBody] PersonalComputer pc)
         {
             try
             {
-                _manager.AddDevice(pc);
+                _manager.AddDevice(pc, "pc");
                 return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
             }
             catch (Exception ex)
@@ -78,12 +74,13 @@ namespace RESTApi.Controllers
             }
         }
 
+        // POST: api/device/embedded
         [HttpPost("embedded")]
         public IResult AddEmbeddedDevice([FromBody] Embedded embedded)
         {
             try
             {
-                _manager.AddDevice(embedded);
+                _manager.AddDevice(embedded, "embedded");
                 return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
             }
             catch (Exception ex)
@@ -92,24 +89,7 @@ namespace RESTApi.Controllers
             }
         }
 
-        // PUT: api/device/{id}
-        /*[HttpPut("{id}")]
-        public IActionResult UpdateDevice(string id, [FromBody] Device updatedDevice)
-        {
-            if (id != updatedDevice.Id)
-                return BadRequest("ID mismatch.");
-
-            try
-            {
-                _manager.EditDevice(updatedDevice);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }*/
-        
+        // PUT: api/device/smartwatch/{id}
         [HttpPut("smartwatch/{id}")]
         public IResult EditSmartwatch(string id, [FromBody] Smartwatch smartwatch)
         {
@@ -120,7 +100,7 @@ namespace RESTApi.Controllers
 
             try
             {
-                _manager.EditDevice(smartwatch);
+                _manager.EditDevice(smartwatch, "smartwatch");
                 return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
             }
             catch (Exception ex)
@@ -128,7 +108,8 @@ namespace RESTApi.Controllers
                 return Results.BadRequest(ex.Message);
             }
         }
-        
+
+        // PUT: api/device/pc/{id}
         [HttpPut("pc/{id}")]
         public IResult EditPersonalComputer(string id, [FromBody] PersonalComputer pc)
         {
@@ -139,7 +120,7 @@ namespace RESTApi.Controllers
 
             try
             {
-                _manager.EditDevice(pc);
+                _manager.EditDevice(pc, "pc");
                 return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
             }
             catch (Exception ex)
@@ -147,7 +128,8 @@ namespace RESTApi.Controllers
                 return Results.BadRequest(ex.Message);
             }
         }
-        
+
+        // PUT: api/device/embedded/{id}
         [HttpPut("embedded/{id}")]
         public IResult EditEmbedded(string id, [FromBody] Embedded embedded)
         {
@@ -158,7 +140,7 @@ namespace RESTApi.Controllers
 
             try
             {
-                _manager.EditDevice(embedded);
+                _manager.EditDevice(embedded, "embedded");
                 return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
             }
             catch (Exception ex)
@@ -166,7 +148,6 @@ namespace RESTApi.Controllers
                 return Results.BadRequest(ex.Message);
             }
         }
-
 
         // DELETE: api/device/{id}
         [HttpDelete("{id}")]
@@ -180,6 +161,36 @@ namespace RESTApi.Controllers
             catch (Exception ex)
             {
                 return Results.NotFound(ex.Message);
+            }
+        }
+
+        // POST: api/device/{id}/turnon
+        [HttpPost("{id}/turnon")]
+        public IResult TurnOnDevice(string id)
+        {
+            try
+            {
+                _manager.TurnOnDevice(id);
+                return Results.Ok($"Device with ID {id} is now turned on.");
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+        }
+
+        // POST: api/device/{id}/turnoff
+        [HttpPost("{id}/turnoff")]
+        public IResult TurnOffDevice(string id)
+        {
+            try
+            {
+                _manager.TurnOffDevice(id);
+                return Results.Ok($"Device with ID {id} is now turned off.");
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
             }
         }
     }
