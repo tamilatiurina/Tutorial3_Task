@@ -11,7 +11,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Insert into Device table
-        INSERT INTO Device (Id, Name, IsEnabled)
+        INSERT INTO Device (Id, Name, Enabled)
         VALUES (@DeviceId, @Name, @IsEnabled);
 
         -- Insert into PersonalComputer table

@@ -15,7 +15,23 @@ public class DevicesRep
     	_connectionString = connectionString;
     }
 
-	public void AddEmbedded(Device device)
+    public void AddDevice(Device device, string type)
+    {
+	    if (type.Equals("embedded"))
+	    {
+		    AddEmbedded(device);
+	    }else if (type.Equals("smartwatch"))
+	    {
+		    AddSmartwatch(device);
+	    }
+	    else
+	    { 
+		    AddPC(device);   
+	    }
+    }
+    
+
+    public void AddEmbedded(Device device)
 	{
     	using var conn = new SqlConnection(_connectionString);
     	using var cmd = new SqlCommand("AddEmbedded", conn)
@@ -34,6 +50,45 @@ public class DevicesRep
     	conn.Open();
     	cmd.ExecuteNonQuery();
 	}
+	
+	public void AddSmartwatch(Device device)
+	{
+		using var conn = new SqlConnection(_connectionString);
+		using var cmd = new SqlCommand("AddSmartwatch", conn)
+		{
+			CommandType = CommandType.StoredProcedure
+		};
+
+		var smartwatch = device as Smartwatch;
+		cmd.Parameters.AddWithValue("@Name", smartwatch.Name);
+		cmd.Parameters.AddWithValue("@IsEnabled", smartwatch.IsEnabled);
+		cmd.Parameters.AddWithValue("@DeviceId", smartwatch.Id);
+		cmd.Parameters.AddWithValue("@BatteryPercentage", smartwatch.BatteryLevel);
+	    
+
+		conn.Open();
+		cmd.ExecuteNonQuery();
+	}
+	
+	public void AddPC(Device device)
+	{
+		using var conn = new SqlConnection(_connectionString);
+		using var cmd = new SqlCommand("AddPersonalComputer", conn)
+		{
+			CommandType = CommandType.StoredProcedure
+		};
+
+		var pc = device as PersonalComputer;
+		cmd.Parameters.AddWithValue("@Name", pc.Name);
+		cmd.Parameters.AddWithValue("@IsEnabled", pc.IsEnabled);
+		cmd.Parameters.AddWithValue("@DeviceId", pc.Id);
+		cmd.Parameters.AddWithValue("@OperationSystem", pc.OperationSystem);
+	    
+
+		conn.Open();
+		cmd.ExecuteNonQuery();
+	}
+	
 	
 	
 	public string GenerateNextId(string deviceType)

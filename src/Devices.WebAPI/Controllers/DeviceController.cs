@@ -93,27 +93,38 @@ namespace RESTApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Only supporting 'embedded' for now — add more types as needed
-            if (!string.Equals(request.DeviceType, "embedded", StringComparison.OrdinalIgnoreCase))
+            var supportedTypes = new[] { "pc", "embedded", "smartwatch" };
+
+            if (!supportedTypes.Contains(request.DeviceType, StringComparer.OrdinalIgnoreCase))
             {
-                return BadRequest("Unsupported device type. Only 'embedded' is supported for now.");
+                return BadRequest("Unsupported device type. Supported types are: 'pc', 'embedded', and 'smartwatch'.");
             }
 
-            var newId = _repository.GenerateNextId("embedded");
-            Console.WriteLine(newId);
+            var newId = request.DeviceType.ToLower() switch
+            {
+                "pc" => _repository.GenerateNextId("pc"),
+                "embedded" => _repository.GenerateNextId("embedded"),
+                "smartwatch" => _repository.GenerateNextId("smartwatch"),
+                _ => throw new ArgumentException("Unknown device type")
+            };
 
-            var embedded = new Embedded(
-                 newId,
-                request.Name,
-                 request.IsEnabled,
-               request.IpAddress,
-               request.NetworkName
-            );
+            Device newDevice = request.DeviceType.ToLower() switch
+            {
+                "pc" => new PersonalComputer(newId, request.Name, request.IsEnabled, request.OperationSystem),
+                "embedded" => new Embedded(newId, request.Name, request.IsEnabled, request.IpAddress, request.NetworkName),
+                "smartwatch" => new Smartwatch(newId, request.Name, request.IsEnabled, request.BatteryLevel ?? 0),
+                _ => null
+            };
+
+            if (newDevice == null)
+            {
+                return BadRequest("Invalid device type.");
+            }
 
             try
             {
-                _repository.AddEmbedded(embedded);
-                return CreatedAtAction(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
+                _repository.AddDevice(newDevice, request.DeviceType.ToLower());
+                return CreatedAtAction(nameof(GetDeviceById), new { id = newDevice.Id }, newDevice);
             }
             catch (Exception ex)
             {
