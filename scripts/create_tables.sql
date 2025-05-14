@@ -1,3 +1,8 @@
+CREATE DATABASE YourDb;
+GO
+USE YourDb;
+GO
+
 CREATE TABLE Device (
                         Id VARCHAR(50) PRIMARY KEY,
                         Name NVARCHAR(100) NOT NULL,
@@ -6,7 +11,7 @@ CREATE TABLE Device (
 
 CREATE TABLE PersonalComputer (
                                   Id INT PRIMARY KEY,
-                                  Name VARCHAR(100) NULL,
+                                  OperationSystem VARCHAR(100) NULL,
                                   DeviceId VARCHAR(50) NOT NULL,
                                   FOREIGN KEY (DeviceId) REFERENCES Device(Id)
 );
@@ -25,3 +30,5 @@ CREATE TABLE Smartwatch (
                           DeviceId VARCHAR(50) NOT NULL,
                           FOREIGN KEY (DeviceId) REFERENCES Device(Id)
 );
+
+GO

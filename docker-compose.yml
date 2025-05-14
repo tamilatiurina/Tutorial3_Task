@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./scripts:/init
+    command: >
+        /bin/bash -c "
+          /opt/mssql/bin/sqlservr & 
+          sleep 20 &&
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -i /init/create_tables.sql &&
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -i /init/insert_initial_data.sql &&
+          tail -f /dev/null
+        "
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile  # This tells Docker Compose to use the Dockerfile to build the app
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Database=YourDb;User=sa;Password=YourStrong!Passw0rd
+    ports:
+      - "5000:80"  # Change if your app uses a different port
+    command: >
+      sh -c "dotnet ef database update && dotnet Tutorial3_Task.dll"
+

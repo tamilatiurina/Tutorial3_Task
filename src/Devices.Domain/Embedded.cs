@@ -7,9 +7,24 @@ namespace Devices.Infrastructure;
 
 public class Embedded : Device
 {
-    public string NetworkName { get; set; }
-    private string _ipAddress;
+    
+    private string _ipAddress = string.Empty;
     private bool _isConnected = false;
+    
+    private string _networkName = string.Empty;
+    public string NetworkName
+    {
+        get => _networkName;
+        set
+        {
+            Console.WriteLine(value);
+            if (!value.Contains("MD Ltd."))
+            {
+                throw new ConnectionException();
+            }
+            _networkName = value;
+        }
+    }
 
     public string IpAddress
     {
@@ -30,15 +45,13 @@ public class Embedded : Device
             }
         }
     }
+    
 
-    public Embedded(DeviceRepository deviceRepository) : base(deviceRepository) { }
-
-    public Embedded(string id, string name, bool isEnabled, string ipAddress, string networkName, DeviceRepository deviceRepository) 
-        : base(deviceRepository)
+    public Embedded(string id, string name, bool isEnabled, string ipAddress, string networkName) 
     {
         if (!CheckId(id))
         {
-            throw new ArgumentException("Invalid ID value. Required format: E-1", id);
+            throw new ArgumentException("Invalid ID value. Required format: ED-1", id);
         }
 
         Id = id;
@@ -47,6 +60,7 @@ public class Embedded : Device
         IpAddress = ipAddress;
         NetworkName = networkName;
     }
+    
 
     public override void TurnOn()
     {
@@ -62,8 +76,9 @@ public class Embedded : Device
 
     public override void Save()
     {
-        _deviceRepository.AddDevice(this, "pc");
+        throw new NotImplementedException();
     }
+
 
     public override string ToString()
     {
@@ -83,5 +98,10 @@ public class Embedded : Device
         }
     }
 
-    private bool CheckId(string id) => id.Contains("E-");
+    private bool CheckId(string id) => id.Contains("ED-");
+}
+
+class ConnectionException : Exception
+{
+    public ConnectionException() : base("Wrong network name.") { }
 }

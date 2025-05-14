@@ -1,4 +1,3 @@
-using Devices.Infrastructure;
 
 namespace Tutorial3_Task;
 
@@ -24,11 +23,9 @@ public class Smartwatch : Device, IPowerNotify
             }
         }
     }
+    
 
-    public Smartwatch(DeviceRepository deviceRepository) : base(deviceRepository) { }
-
-    public Smartwatch(string id, string name, bool isEnabled, int batteryLevel, DeviceRepository deviceRepository) 
-        : base(deviceRepository)
+    public Smartwatch(string id, string name, bool isEnabled, int batteryLevel) 
     {
         if (!CheckId(id))
         {
@@ -64,8 +61,9 @@ public class Smartwatch : Device, IPowerNotify
 
     public override void Save()
     {
-        _deviceRepository.AddDevice(this, "smartwatch");
+        throw new NotImplementedException();
     }
+
 
     public override string ToString()
     {

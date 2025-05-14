@@ -1,7 +1,10 @@
-using Devices.Infrastructure.Devices.Infrastraucture;
+
+using Devices.Infrastructure;
+using Devices.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tutorial3_Task;
+
 
 namespace RESTApi.Controllers
 {
@@ -9,190 +12,173 @@ namespace RESTApi.Controllers
     [ApiController]
     public class DeviceController : ControllerBase
     {
-        private readonly DeviceManager _manager;
+        private readonly DevicesRep _repository;
 
-        // Constructor that accepts DeviceManager via DI
-        public DeviceController(DeviceManager manager)
+        public DeviceController(DevicesRep repository)
         {
-            _manager = manager;
+            _repository = repository;
         }
 
         
-        // GET: api/device
-        [HttpGet]
-        public IResult GetAllDevices()
+       // GET: api/devices
+        /*[HttpGet]
+        public IActionResult GetAllDevices()
         {
-            var devices = _manager
-                .GetAllDevices()
-                .Select(d => new { d.Id, d.Name, d.IsEnabled });
+            var devices = _repository.GetAllDevices()
+                .Select(d => new {
+                    Id = d.Id,
+                    Name = d.Name,
+                    IsEnabled = d.IsEnabled
+                })
+                .ToList();
 
-            return Results.Ok(devices);
+            return Ok(devices);
+        }*/
+
+        // GET: api/devices/{id}
+        [HttpGet("{id}")]
+        public IActionResult GetDeviceById(string id)
+        {
+            var device = _repository.GetAllDevices().FirstOrDefault(d => d.Id == id);
+            if (device == null)
+            {
+                return NotFound($"Device with id {id} not found.");
+            }
+
+            return Ok(device);
         }
 
-        // GET: api/device/{id}
-        [HttpGet("{id}", Name = nameof(GetDeviceById))]
-        public IResult GetDeviceById(string id)
+        // POST: api/devices
+        [HttpPost]
+        public IActionResult CreateDevice([FromBody] DeviceCreateRequest request)
         {
-            try
+            /*if (!ModelState.IsValid)
             {
-                var device = _manager.GetDeviceById(id);
-                return Results.Ok(device);
+                return BadRequest(ModelState);
             }
-            catch (ArgumentException ex)
+            var newId = request.DeviceType.ToLower() switch
             {
-                return Results.NotFound(ex.Message);
-            }
-        }
+                "pc" => _repository.GenerateNextId("pc"),
+                "embedded" => _repository.GenerateNextId("embedded"),
+                "smartwatch" => _repository.GenerateNextId("smartwatch"),
+                _ => throw new ArgumentException("Unknown device type")
+            };
+            Device newDevice = request.DeviceType.ToLower() switch
+            {
+                "pc" => new PersonalComputer(newId, request.Name, request.IsEnabled, request.OperationSystem),
+                "embedded" => new Embedded(newId, request.Name, request.IsEnabled, request.IpAddress, request.NetworkName),
+                "smartwatch" => new Smartwatch(newId, request.Name, request.IsEnabled, request.BatteryLevel ?? 0),
+                _ => null
+            };
 
-        // POST: api/device/smartwatch
-        [HttpPost("smartwatch")]
-        public IResult AddSmartwatch([FromBody] Smartwatch smartwatch)
-        {
+            if (newDevice == null)
+            {
+                return BadRequest("Invalid device type.");
+            }
+
+
+    		try
+    		{
+        		_repository.AddEmbedded(newDevice);
+        		return CreatedAtAction(nameof(GetDeviceById), new { id = newDevice.Id }, newDevice);
+    		}
+   			 catch (Exception ex)
+    		{
+        		// You could log ex.Message here
+        		return StatusCode(500, "Failed to create device: " + ex.Message);
+    		}*/
+            
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Only supporting 'embedded' for now — add more types as needed
+            if (!string.Equals(request.DeviceType, "embedded", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Unsupported device type. Only 'embedded' is supported for now.");
+            }
+
+            var newId = _repository.GenerateNextId("embedded");
+            Console.WriteLine(newId);
+
+            var embedded = new Embedded(
+                 newId,
+                request.Name,
+                 request.IsEnabled,
+               request.IpAddress,
+               request.NetworkName
+            );
+
             try
             {
-                _manager.AddDevice(smartwatch, "smartwatch");
-                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
+                _repository.AddEmbedded(embedded);
+                return CreatedAtAction(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(ex.Message);
+                // You could log ex.Message here
+                return StatusCode(500, "Failed to create device: " + ex.Message);
             }
         }
 
-        // POST: api/device/pc
-        [HttpPost("pc")]
-        public IResult AddPersonalComputer([FromBody] PersonalComputer pc)
+        // PUT: api/devices/{id}
+        /*[HttpPut("{id}")]
+        public IActionResult UpdateDevice(string id, [FromBody] DeviceUpdateRequest request)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                _manager.AddDevice(pc, "pc");
-                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
 
-        // POST: api/device/embedded
-        [HttpPost("embedded")]
-        public IResult AddEmbeddedDevice([FromBody] Embedded embedded)
-        {
-            try
+            var device = _repository.GetAllDevices().FirstOrDefault(d => d.Id == id);
+            if (device == null)
             {
-                _manager.AddDevice(embedded, "embedded");
-                return Results.CreatedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
+                return NotFound($"Device with id {id} not found.");
             }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
 
-        // PUT: api/device/smartwatch/{id}
-        [HttpPut("smartwatch/{id}")]
-        public IResult EditSmartwatch(string id, [FromBody] Smartwatch smartwatch)
-        {
-            if (id != smartwatch.Id)
+            device.Name = request.Name;
+            device.IsEnabled = request.IsEnabled;
+
+            if (device is PersonalComputer pc && request.OperationSystem != null)
             {
-                return Results.BadRequest("ID in URL does not match ID in body.");
+                pc.OperationSystem = request.OperationSystem;
+            }
+            if (device is Embedded emb && request.IpAddress != null && request.NetworkName != null)
+            {
+                emb.IpAddress = request.IpAddress;
+                emb.NetworkName = request.NetworkName;
+            }
+            if (device is Smartwatch sw && request.BatteryLevel.HasValue)
+            {
+                sw.BatteryLevel = request.BatteryLevel.Value;
             }
 
             try
             {
-                _manager.EditDevice(smartwatch, "smartwatch");
-                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = smartwatch.Id }, smartwatch);
+                _repository.UpdateDevice(device);
+                return Ok(device);
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
-        // PUT: api/device/pc/{id}
-        [HttpPut("pc/{id}")]
-        public IResult EditPersonalComputer(string id, [FromBody] PersonalComputer pc)
-        {
-            if (id != pc.Id)
-            {
-                return Results.BadRequest("ID in URL does not match ID in body.");
-            }
-
-            try
-            {
-                _manager.EditDevice(pc, "pc");
-                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = pc.Id }, pc);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
-
-        // PUT: api/device/embedded/{id}
-        [HttpPut("embedded/{id}")]
-        public IResult EditEmbedded(string id, [FromBody] Embedded embedded)
-        {
-            if (id != embedded.Id)
-            {
-                return Results.BadRequest("ID in URL does not match ID in body.");
-            }
-
-            try
-            {
-                _manager.EditDevice(embedded, "embedded");
-                return Results.AcceptedAtRoute(nameof(GetDeviceById), new { id = embedded.Id }, embedded);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
-
-        // DELETE: api/device/{id}
+        // DELETE: api/devices/{id}
         [HttpDelete("{id}")]
-        public IResult DeleteDevice(string id)
+        public IActionResult DeleteDevice(string id)
         {
             try
             {
-                _manager.RemoveDeviceById(id);
-                return Results.NoContent();
+                _repository.DeleteDevice(id);
+                return NoContent(); // 204 - No Content
             }
             catch (Exception ex)
             {
-                return Results.NotFound(ex.Message);
+                return NotFound(ex.Message);
             }
-        }
-
-        // POST: api/device/{id}/turnon
-        [HttpPost("{id}/turnon")]
-        public IResult TurnOnDevice(string id)
-        {
-            try
-            {
-                _manager.TurnOnDevice(id);
-                return Results.Ok($"Device with ID {id} is now turned on.");
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
-
-        // POST: api/device/{id}/turnoff
-        [HttpPost("{id}/turnoff")]
-        public IResult TurnOffDevice(string id)
-        {
-            try
-            {
-                _manager.TurnOffDevice(id);
-                return Results.Ok($"Device with ID {id} is now turned off.");
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-        }
+        }*/
     }
 }
 

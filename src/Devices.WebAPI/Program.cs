@@ -1,9 +1,12 @@
+using Devices.Infrastructure;
+using Devices.Repository;
 using Tutorial3_Task;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddSingleton<DeviceManager>(new DeviceManager(connectionString));
+builder.Services.AddSingleton<DevicesRep>(provider => new DevicesRep(connectionString));
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -20,7 +23,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

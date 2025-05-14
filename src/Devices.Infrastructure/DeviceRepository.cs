@@ -73,17 +73,12 @@ namespace Devices.Infrastructure
                 return smartwatch;
             }
 
-            // If no type matched, return a basic Device
-            var device = new Device(this);
-            device.Id = id;
-            device.Name = name;
-            device.IsEnabled = isEnabled;
-            return device;
+            return null;
         }
 
         public void AddDevice(Device device, string deviceType)
         {
-            device.Id = Guid.NewGuid().ToString();
+            //device.Id = Guid.NewGuid().ToString();
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -114,34 +109,51 @@ namespace Devices.Infrastructure
 
         private void InsertPersonalComputer(PersonalComputer pc, SqlConnection connection)
         {
-            var command = new SqlCommand("INSERT INTO PersonalComputer (Id, DeviceId, OperatingSystem) VALUES (@Id, @DeviceId, @OperatingSystem)", connection);
-            command.Parameters.AddWithValue("@Id", pc.Id);
-            command.Parameters.AddWithValue("@DeviceId", pc.DeviceId);
-            command.Parameters.AddWithValue("@OperatingSystem", pc.OperatingSystem ?? (object)DBNull.Value);
+            var command = new SqlCommand("INSERT INTO PersonalComputer (Id, DeviceId, OperationSystem) VALUES (@Id, @DeviceId, @OperationSystem)", connection);
+            string numericId = pc.Id.Replace("P-", "");
+            command.Parameters.AddWithValue("@Id", numericId);
+            command.Parameters.AddWithValue("@DeviceId", pc.Id);
+            command.Parameters.AddWithValue("@OperationSystem", pc.OperationSystem ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
         }
 
         private void InsertEmbedded(Embedded embedded, SqlConnection connection)
         {
             var command = new SqlCommand("INSERT INTO Embedded (Id, IpAddress, NetworkName, DeviceId) VALUES (@Id, @IpAddress, @NetworkName, @DeviceId)", connection);
-            command.Parameters.AddWithValue("@Id", embedded.Id);
+            string numericId = embedded.Id.Replace("ED-", "");
+            command.Parameters.AddWithValue("@Id", numericId);
             command.Parameters.AddWithValue("@IpAddress", embedded.IpAddress);
             command.Parameters.AddWithValue("@NetworkName", embedded.NetworkName);
-            command.Parameters.AddWithValue("@DeviceId", embedded.DeviceId);
+            command.Parameters.AddWithValue("@DeviceId", embedded.Id);
             command.ExecuteNonQuery();
         }
 
         private void InsertSmartwatch(Smartwatch smartwatch, SqlConnection connection)
         {
             var command = new SqlCommand("INSERT INTO Smartwatch (Id, BatteryPercentage, DeviceId) VALUES (@Id, @BatteryPercentage, @DeviceId)", connection);
-            command.Parameters.AddWithValue("@Id", smartwatch.Id);
+            string numericId = smartwatch.Id.Replace("SW-", "");
+            command.Parameters.AddWithValue("@Id", numericId);
             command.Parameters.AddWithValue("@BatteryPercentage", smartwatch.BatteryLevel);
-            command.Parameters.AddWithValue("@DeviceId", smartwatch.DeviceId);
+            command.Parameters.AddWithValue("@DeviceId", smartwatch.Id);
             command.ExecuteNonQuery();
         }
 
         public void UpdateDevice(Device device)
         {
+            switch (device)
+            {
+                case PersonalComputer pc:
+                    if (pc.IsEnabled && string.IsNullOrWhiteSpace(pc.OperationSystem))
+                    {
+                        throw new EmptySystemException();
+                    }
+                    break;
+                
+            }
+            if (device is PersonalComputer)
+            {
+               
+            }
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
@@ -169,9 +181,9 @@ namespace Devices.Infrastructure
 
         private void UpdatePersonalComputer(PersonalComputer pc, SqlConnection connection)
         {
-            var command = new SqlCommand("UPDATE PersonalComputer SET OperatingSystem = @OperatingSystem WHERE DeviceId = @DeviceId", connection);
-            command.Parameters.AddWithValue("@OperatingSystem", pc.OperatingSystem ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@DeviceId", pc.DeviceId);
+            var command = new SqlCommand("UPDATE PersonalComputer SET OperationSystem = @OperationSystem WHERE DeviceId = @DeviceId", connection);
+            command.Parameters.AddWithValue("@OperationSystem", pc.OperationSystem ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@DeviceId", pc.Id);
             command.ExecuteNonQuery();
         }
 
@@ -180,7 +192,7 @@ namespace Devices.Infrastructure
             var command = new SqlCommand("UPDATE Embedded SET IpAddress = @IpAddress, NetworkName = @NetworkName WHERE DeviceId = @DeviceId", connection);
             command.Parameters.AddWithValue("@IpAddress", embedded.IpAddress);
             command.Parameters.AddWithValue("@NetworkName", embedded.NetworkName);
-            command.Parameters.AddWithValue("@DeviceId", embedded.DeviceId);
+            command.Parameters.AddWithValue("@DeviceId", embedded.Id);
             command.ExecuteNonQuery();
         }
 
@@ -188,7 +200,7 @@ namespace Devices.Infrastructure
         {
             var command = new SqlCommand("UPDATE Smartwatch SET BatteryPercentage = @BatteryPercentage WHERE DeviceId = @DeviceId", connection);
             command.Parameters.AddWithValue("@BatteryPercentage", smartwatch.BatteryLevel);
-            command.Parameters.AddWithValue("@DeviceId", smartwatch.DeviceId);
+            command.Parameters.AddWithValue("@DeviceId", smartwatch.Id);
             command.ExecuteNonQuery();
         }
 
@@ -218,14 +230,14 @@ namespace Devices.Infrastructure
 
         private PersonalComputer GetPersonalComputerByDeviceId(SqlConnection connection, string deviceId)
         {
-            var command = new SqlCommand("SELECT OperatingSystem FROM PersonalComputer WHERE DeviceId = @DeviceId", connection);
+            var command = new SqlCommand("SELECT OperationSystem FROM PersonalComputer WHERE DeviceId = @DeviceId", connection);
             command.Parameters.AddWithValue("@DeviceId", deviceId);
 
             using (var reader = command.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    return new PersonalComputer(id: deviceId, name: "", isEnabled: false, operatingSystem: reader.IsDBNull(0) ? null : reader.GetString(0), deviceRepository: this);
+                    return new PersonalComputer(id: deviceId, name: "", isEnabled: false, operatingSystem: reader.IsDBNull(0) ? null : reader.GetString(0));
                 }
             }
             return null;
@@ -240,7 +252,7 @@ namespace Devices.Infrastructure
             {
                 if (reader.Read())
                 {
-                    return new Embedded(id: deviceId, name: "", isEnabled: false, ipAddress: reader.GetString(0), networkName: reader.GetString(1), deviceRepository: this);
+                    return new Embedded(id: deviceId, name: "", isEnabled: false, ipAddress: reader.GetString(0), networkName: reader.GetString(1));
                 }
             }
             return null;
@@ -255,10 +267,59 @@ namespace Devices.Infrastructure
             {
                 if (reader.Read())
                 {
-                    return new Smartwatch(id: deviceId, name: "", isEnabled: false, batteryLevel: reader.GetInt32(0), deviceRepository: this);
+                    return new Smartwatch(id: deviceId, name: "", isEnabled: false, batteryLevel: reader.GetInt32(0));
                 }
             }
             return null;
         }
+        
+       
+        public string GenerateNextId(string deviceType)
+        {
+            string prefix = deviceType.ToLower() switch
+            {
+                "pc" => "P-",
+                "embedded" => "ED-",
+                "smartwatch" => "SW-",
+                _ => throw new ArgumentException("Invalid device type")
+            };
+
+            string table = deviceType.ToLower() switch
+            {
+                "pc" => "PersonalComputer",
+                "embedded" => "Embedded",
+                "smartwatch" => "Smartwatch",
+                _ => throw new ArgumentException("Invalid device type")
+            };
+
+            string query = $"SELECT TOP 1 DeviceId FROM {table} WHERE DeviceId LIKE @Prefix + '%' ORDER BY LEN(DeviceId) DESC, DeviceId DESC";
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Prefix", prefix);
+                    var result = command.ExecuteScalar() as string;
+
+                    int lastNumber = 0;
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(result, @"(\d+)$");
+                        if (match.Success)
+                        {
+                            lastNumber = int.Parse(match.Value);
+                        }
+                    }
+
+                    return $"{prefix}{lastNumber + 1}";
+                }
+            }
+        }
+
+
+
     }
+    
+    
 }
