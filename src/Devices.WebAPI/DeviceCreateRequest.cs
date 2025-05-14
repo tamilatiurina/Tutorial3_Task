@@ -13,6 +13,7 @@ public class DeviceCreateRequest
 
 public class DeviceUpdateRequest
 {
+    public byte[] RowVersion { get; set; }
     public string Name { get; set; }
     public bool IsEnabled { get; set; }
     public string OperationSystem { get; set; }

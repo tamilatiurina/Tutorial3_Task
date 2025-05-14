@@ -1,10 +1,14 @@
 
 
+using System.Text.Json.Serialization;
+
 namespace Tutorial3_Task;
 
 
 public abstract class Device
 {
+    [JsonPropertyName("rowVersion")] 
+    public byte[] RowVersion { get; set; }
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = false;

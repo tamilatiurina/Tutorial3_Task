@@ -7,7 +7,6 @@ namespace Devices.Infrastructure;
 
 public class Embedded : Device
 {
-    
     private string _ipAddress = string.Empty;
     private bool _isConnected = false;
     

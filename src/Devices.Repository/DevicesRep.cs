@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.SqlTypes;
 using System.Security.AccessControl;
 using Devices.Infrastructure;
 using Microsoft.Data.SqlClient;
@@ -6,7 +7,7 @@ using Tutorial3_Task;
 
 namespace Devices.Repository;
 
-public class DevicesRep
+public class DevicesRep : IDevicesRep
 {
 	private readonly string _connectionString;
 
@@ -88,8 +89,217 @@ public class DevicesRep
 		conn.Open();
 		cmd.ExecuteNonQuery();
 	}
+
+	public bool UpdateDevice(Device device)
+	{
+		switch (device)
+		{
+			case PersonalComputer pc when pc.IsEnabled && string.IsNullOrWhiteSpace(pc.OperationSystem):
+				throw new EmptySystemException();
+		}
+
+		using var connection = new SqlConnection(_connectionString);
+		connection.Open();
+
+		return device switch
+		{
+			PersonalComputer pc => UpdatePC(pc, connection),
+			Embedded embedded => UpdateEmbedded(embedded, connection),
+			Smartwatch sw => UpdateSmartwatch(sw, connection),
+			_ => false
+		};
+	}
+
+	public bool UpdateEmbedded(Embedded embedded, SqlConnection conn)
+	{
+		Console.WriteLine("entered");
+		using var transaction = conn.BeginTransaction();
+		try
+		{
+		
+			var deviceCmd = new SqlCommand(@"
+			UPDATE Device
+			SET Name = @Name, Enabled = @IsEnabled
+			WHERE Id = @DeviceId AND RowVersion = @OriginalRowVersion;", conn, transaction);
+
+			deviceCmd.Parameters.AddWithValue("@Name", embedded.Name);
+			deviceCmd.Parameters.AddWithValue("@IsEnabled", embedded.IsEnabled);
+			deviceCmd.Parameters.AddWithValue("@DeviceId", embedded.Id);
+			deviceCmd.Parameters.Add("@OriginalRowVersion", SqlDbType.Timestamp).Value = new SqlBinary(embedded.RowVersion);
+
+			int deviceRows = deviceCmd.ExecuteNonQuery();
+			if (deviceRows == 0)
+			{
+				transaction.Rollback();
+				Console.WriteLine("Optimistic concurrency check failed: No rows matched RowVersion and ID.");
+				Console.WriteLine($"Incoming ID: {embedded.Id}");
+				Console.WriteLine($"Incoming RowVersion: {BitConverter.ToString(embedded.RowVersion)}");
+				return false; 
+			}
+
+			var embeddedCmd = new SqlCommand(@"
+			UPDATE Embedded
+			SET IpAddress = @IpAddress, NetworkName = @NetworkName
+			WHERE DeviceId = @DeviceId;", conn, transaction);
+
+			embeddedCmd.Parameters.AddWithValue("@IpAddress", embedded.IpAddress);
+			embeddedCmd.Parameters.AddWithValue("@NetworkName", embedded.NetworkName);
+			embeddedCmd.Parameters.AddWithValue("@DeviceId", embedded.Id);
+
+			embeddedCmd.ExecuteNonQuery();
+			transaction.Commit();
+			return true;
+		}
+		catch (Exception ex)
+		{
+			transaction.Rollback();
+			
+			Console.WriteLine("Exception during update:");
+			Console.WriteLine($"Message: {ex.Message}");
+			Console.WriteLine($"StackTrace: {ex.StackTrace}");
+			
+			throw;
+		}
+	}
 	
+	public bool UpdatePC(PersonalComputer pc, SqlConnection conn)
+	{
+		using var transaction = conn.BeginTransaction();
+		try
+		{
+		
+			var deviceCmd = new SqlCommand(@"
+			UPDATE Device
+			SET Name = @Name, Enabled = @IsEnabled
+			WHERE Id = @DeviceId AND RowVersion = @OriginalRowVersion;", conn, transaction);
+
+			deviceCmd.Parameters.AddWithValue("@Name", pc.Name);
+			deviceCmd.Parameters.AddWithValue("@IsEnabled", pc.IsEnabled);
+			deviceCmd.Parameters.AddWithValue("@DeviceId", pc.Id);
+			deviceCmd.Parameters.Add("@OriginalRowVersion", SqlDbType.Timestamp).Value = new SqlBinary(pc.RowVersion);
+
+			int deviceRows = deviceCmd.ExecuteNonQuery();
+			if (deviceRows == 0)
+			{
+				transaction.Rollback();
+				Console.WriteLine("Optimistic concurrency check failed: No rows matched RowVersion and ID.");
+				Console.WriteLine($"Incoming ID: {pc.Id}");
+				Console.WriteLine($"Incoming RowVersion: {BitConverter.ToString(pc.RowVersion)}");
+				return false; 
+			}
+
+			var pcCmd = new SqlCommand(@"
+			UPDATE PersonalComputer
+			SET OperationSystem = @OperationSystem
+			WHERE DeviceId = @DeviceId;", conn, transaction);
+
+			pcCmd.Parameters.AddWithValue("OperationSystem", pc.OperationSystem);
+			pcCmd.Parameters.AddWithValue("@DeviceId", pc.Id);
+
+			pcCmd.ExecuteNonQuery();
+			transaction.Commit();
+			return true;
+		}
+		catch (Exception ex)
+		{
+			transaction.Rollback();
+			
+			Console.WriteLine("Exception during update:");
+			Console.WriteLine($"Message: {ex.Message}");
+			Console.WriteLine($"StackTrace: {ex.StackTrace}");
+			
+			throw;
+		}
+	}
 	
+	public bool UpdateSmartwatch(Smartwatch sm, SqlConnection conn)
+	{
+		using var transaction = conn.BeginTransaction();
+		try
+		{
+		
+			var deviceCmd = new SqlCommand(@"
+			UPDATE Device
+			SET Name = @Name, Enabled = @IsEnabled
+			WHERE Id = @DeviceId AND RowVersion = @OriginalRowVersion;", conn, transaction);
+
+			deviceCmd.Parameters.AddWithValue("@Name", sm.Name);
+			deviceCmd.Parameters.AddWithValue("@IsEnabled", sm.IsEnabled);
+			deviceCmd.Parameters.AddWithValue("@DeviceId", sm.Id);
+			deviceCmd.Parameters.Add("@OriginalRowVersion", SqlDbType.Timestamp).Value = new SqlBinary(sm.RowVersion);
+
+			int deviceRows = deviceCmd.ExecuteNonQuery();
+			if (deviceRows == 0)
+			{
+				transaction.Rollback();
+				Console.WriteLine("Optimistic concurrency check failed: No rows matched RowVersion and ID.");
+				Console.WriteLine($"Incoming ID: {sm.Id}");
+				Console.WriteLine($"Incoming RowVersion: {BitConverter.ToString(sm.RowVersion)}");
+				return false; 
+			}
+
+			var smCmd = new SqlCommand(@"
+			UPDATE Smartwatch
+			SET BatteryPercentage = @BatteryPercentage
+			WHERE DeviceId = @DeviceId;", conn, transaction);
+
+			smCmd.Parameters.AddWithValue("@BatteryPercentage", sm.BatteryLevel);
+			smCmd.Parameters.AddWithValue("@DeviceId", sm.Id);
+
+			smCmd.ExecuteNonQuery();
+			transaction.Commit();
+			return true;
+		}
+		catch (Exception ex)
+		{
+			transaction.Rollback();
+			
+			Console.WriteLine("Exception during update:");
+			Console.WriteLine($"Message: {ex.Message}");
+			Console.WriteLine($"StackTrace: {ex.StackTrace}");
+			
+			throw;
+		}
+	}
+	
+	public void DeleteDevice(string id)
+	{
+		using (var connection = new SqlConnection(_connectionString))
+		{
+			connection.Open();
+			
+			using (var transaction = connection.BeginTransaction())
+			{
+				try
+				{
+					var deletePCCommand = new SqlCommand("DELETE FROM PersonalComputer WHERE DeviceId = @DeviceId", connection, transaction);
+					deletePCCommand.Parameters.AddWithValue("@DeviceId", id);
+					deletePCCommand.ExecuteNonQuery();
+
+					var deleteEmbeddedCommand = new SqlCommand("DELETE FROM Embedded WHERE DeviceId = @DeviceId", connection, transaction);
+					deleteEmbeddedCommand.Parameters.AddWithValue("@DeviceId", id);
+					deleteEmbeddedCommand.ExecuteNonQuery();
+
+					var deleteSmartwatchCommand = new SqlCommand("DELETE FROM Smartwatch WHERE DeviceId = @DeviceId", connection, transaction);
+					deleteSmartwatchCommand.Parameters.AddWithValue("@DeviceId", id);
+					deleteSmartwatchCommand.ExecuteNonQuery();
+
+					var deleteDeviceCommand = new SqlCommand("DELETE FROM Device WHERE Id = @Id", connection, transaction);
+					deleteDeviceCommand.Parameters.AddWithValue("@Id", id);
+					deleteDeviceCommand.ExecuteNonQuery();
+					
+					transaction.Commit();
+				}
+				catch (Exception)
+				{
+					
+					transaction.Rollback();
+					throw; 
+				}
+			}
+		}
+	}
+
 	
 	public string GenerateNextId(string deviceType)
 	{
@@ -137,13 +347,13 @@ public class DevicesRep
 	
 	public List<Device> GetAllDevices()
 	{
-		var devices = new List<Device>();
+		var deviceHeaders = new List<(string Id, string Name, bool IsEnabled)>();
 
 		using (var connection = new SqlConnection(_connectionString))
 		{
 			connection.Open();
 
-			// Fetch basic device info
+			
 			var command = new SqlCommand("SELECT Id, Name, Enabled FROM Device", connection);
 			using (var reader = command.ExecuteReader())
 			{
@@ -153,21 +363,26 @@ public class DevicesRep
 					var name = reader.GetString(1);
 					var isEnabled = reader.GetBoolean(2);
 
-					// Instead of opening new connections, call type-check methods directly
-					var device = GetDetailedDevice(connection, id, name, isEnabled);
-					if (device != null)
-						devices.Add(device);
+					deviceHeaders.Add((id, name, isEnabled));
 				}
 			}
-		}
+			
+			var devices = new List<Device>();
+			foreach (var (id, name, isEnabled) in deviceHeaders)
+			{
+				var device = GetDetailedDevice(connection, id, name, isEnabled);
+				if (device != null)
+					devices.Add(device);
+			}
 
-		return devices;
+			return devices;
+		}
 	}
 	
 	
-	private Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled)
+	public Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled)
 	{
-		// Try to fetch from each specific table
+		
 		var pc = GetPersonalComputerByDeviceId(connection, id);
 		if (pc != null)
 		{
@@ -195,7 +410,7 @@ public class DevicesRep
 		return null;
 	}
 	
-	private PersonalComputer GetPersonalComputerByDeviceId(SqlConnection connection, string deviceId)
+	public PersonalComputer GetPersonalComputerByDeviceId(SqlConnection connection, string deviceId)
 	{
 		var command = new SqlCommand("SELECT OperationSystem FROM PersonalComputer WHERE DeviceId = @DeviceId", connection);
 		command.Parameters.AddWithValue("@DeviceId", deviceId);
@@ -210,7 +425,7 @@ public class DevicesRep
 		return null;
 	}
 
-	private Embedded GetEmbeddedByDeviceId(SqlConnection connection, string deviceId)
+	public Embedded GetEmbeddedByDeviceId(SqlConnection connection, string deviceId)
 	{
 		var command = new SqlCommand("SELECT IpAddress, NetworkName FROM Embedded WHERE DeviceId = @DeviceId", connection);
 		command.Parameters.AddWithValue("@DeviceId", deviceId);
@@ -225,7 +440,7 @@ public class DevicesRep
 		return null;
 	}
 
-	private Smartwatch GetSmartwatchByDeviceId(SqlConnection connection, string deviceId)
+	public Smartwatch GetSmartwatchByDeviceId(SqlConnection connection, string deviceId)
 	{
 		var command = new SqlCommand("SELECT BatteryPercentage FROM Smartwatch WHERE DeviceId = @DeviceId", connection);
 		command.Parameters.AddWithValue("@DeviceId", deviceId);

@@ -31,6 +31,11 @@ public class Smartwatch : Device, IPowerNotify
         {
             throw new ArgumentException("Invalid ID value. Required format: SW-1", id);
         }
+        if (isEnabled && batteryLevel <11)
+        {
+            throw new EmptyBatteryException();
+        }
+
 
         Id = id;
         Name = name;

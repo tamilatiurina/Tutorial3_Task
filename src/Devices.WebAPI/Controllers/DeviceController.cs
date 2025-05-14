@@ -21,7 +21,7 @@ namespace RESTApi.Controllers
 
         
        // GET: api/devices
-        /*[HttpGet]
+        [HttpGet]
         public IActionResult GetAllDevices()
         {
             var devices = _repository.GetAllDevices()
@@ -33,7 +33,7 @@ namespace RESTApi.Controllers
                 .ToList();
 
             return Ok(devices);
-        }*/
+        }
 
         // GET: api/devices/{id}
         [HttpGet("{id}")]
@@ -134,7 +134,7 @@ namespace RESTApi.Controllers
         }
 
         // PUT: api/devices/{id}
-        /*[HttpPut("{id}")]
+        [HttpPut("{id}")]
         public IActionResult UpdateDevice(string id, [FromBody] DeviceUpdateRequest request)
         {
             if (!ModelState.IsValid)
@@ -142,14 +142,16 @@ namespace RESTApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var device = _repository.GetAllDevices().FirstOrDefault(d => d.Id == id);
+            var device = _repository.GetAllDevices().ToList().FirstOrDefault(d => d.Id == id);
             if (device == null)
             {
                 return NotFound($"Device with id {id} not found.");
             }
-
+            
+            
             device.Name = request.Name;
             device.IsEnabled = request.IsEnabled;
+            device.RowVersion = request.RowVersion;
 
             if (device is PersonalComputer pc && request.OperationSystem != null)
             {
@@ -164,11 +166,25 @@ namespace RESTApi.Controllers
             {
                 sw.BatteryLevel = request.BatteryLevel.Value;
             }
+            
+            Console.WriteLine(request.RowVersion);
+            if (device.RowVersion == null || device.RowVersion.Length == 0)
+            {
+                throw new ArgumentException("RowVersion must be provided for concurrency check.");
+            }
 
             try
             {
-                _repository.UpdateDevice(device);
-                return Ok(device);
+                if (_repository.UpdateDevice(device))
+                {
+                    return Ok(device);
+                }
+                else
+                {
+                    return BadRequest("Could not update device.");
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -189,7 +205,7 @@ namespace RESTApi.Controllers
             {
                 return NotFound(ex.Message);
             }
-        }*/
+        }
     }
 }
 
