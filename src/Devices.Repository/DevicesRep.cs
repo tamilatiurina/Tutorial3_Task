@@ -49,7 +49,8 @@ public class DevicesRep : IDevicesRep
 	    
 
     	conn.Open();
-    	cmd.ExecuteNonQuery();
+	    var rowVersion = cmd.ExecuteScalar() as byte[];
+	    embedded.RowVersion = rowVersion;
 	}
 	
 	public void AddSmartwatch(Device device)
@@ -68,7 +69,8 @@ public class DevicesRep : IDevicesRep
 	    
 
 		conn.Open();
-		cmd.ExecuteNonQuery();
+		var rowVersion = cmd.ExecuteScalar() as byte[];
+		smartwatch.RowVersion = rowVersion;
 	}
 	
 	public void AddPC(Device device)
@@ -87,7 +89,8 @@ public class DevicesRep : IDevicesRep
 	    
 
 		conn.Open();
-		cmd.ExecuteNonQuery();
+		var rowVersion = cmd.ExecuteScalar() as byte[];
+		pc.RowVersion = rowVersion;
 	}
 
 	public bool UpdateDevice(Device device)
@@ -347,14 +350,14 @@ public class DevicesRep : IDevicesRep
 	
 	public List<Device> GetAllDevices()
 	{
-		var deviceHeaders = new List<(string Id, string Name, bool IsEnabled)>();
+		var deviceHeaders = new List<(string id, string name, bool isEnabled, byte[] rowVersion)>();
 
 		using (var connection = new SqlConnection(_connectionString))
 		{
 			connection.Open();
 
 			
-			var command = new SqlCommand("SELECT Id, Name, Enabled FROM Device", connection);
+			var command = new SqlCommand("SELECT Id, Name, Enabled, RowVersion FROM Device", connection);
 			using (var reader = command.ExecuteReader())
 			{
 				while (reader.Read())
@@ -362,15 +365,26 @@ public class DevicesRep : IDevicesRep
 					var id = reader.GetString(0);
 					var name = reader.GetString(1);
 					var isEnabled = reader.GetBoolean(2);
+					var rowVersionObj = reader["RowVersion"];
+					byte[]? rowVersion = null;
+					if (rowVersionObj == DBNull.Value)
+					{
+						Console.WriteLine("RowVersion is DBNull!");
+					}
+					else
+					{
+						rowVersion = reader["RowVersion"] as byte[];
+						Console.WriteLine($"RowVersion length: {rowVersion.Length}");
+					}
 
-					deviceHeaders.Add((id, name, isEnabled));
+					deviceHeaders.Add((id, name, isEnabled, rowVersion));
 				}
 			}
 			
 			var devices = new List<Device>();
-			foreach (var (id, name, isEnabled) in deviceHeaders)
+			foreach (var (id, name, isEnabled, rowVersion) in deviceHeaders)
 			{
-				var device = GetDetailedDevice(connection, id, name, isEnabled);
+				var device = GetDetailedDevice(connection, id, name, isEnabled, rowVersion);
 				if (device != null)
 					devices.Add(device);
 			}
@@ -380,7 +394,7 @@ public class DevicesRep : IDevicesRep
 	}
 	
 	
-	public Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled)
+	public Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled, byte[] rowVersion)
 	{
 		
 		var pc = GetPersonalComputerByDeviceId(connection, id);
@@ -388,6 +402,7 @@ public class DevicesRep : IDevicesRep
 		{
 			pc.Name = name;
 			pc.IsEnabled = isEnabled;
+			pc.RowVersion = rowVersion;
 			return pc;
 		}
 
@@ -396,6 +411,7 @@ public class DevicesRep : IDevicesRep
 		{
 			embedded.Name = name;
 			embedded.IsEnabled = isEnabled;
+			embedded.RowVersion = rowVersion; 
 			return embedded;
 		}
 
@@ -404,6 +420,7 @@ public class DevicesRep : IDevicesRep
 		{
 			smartwatch.Name = name;
 			smartwatch.IsEnabled = isEnabled;
+			smartwatch.RowVersion = rowVersion; 
 			return smartwatch;
 		}
 

@@ -12,7 +12,11 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Insert into Device table
+        DECLARE @InsertedInfo TABLE (RowVersion ROWVERSION);
+
+        -- Insert into Device and capture RowVersion
         INSERT INTO Device (Id, Name, Enabled)
+        OUTPUT INSERTED.RowVersion INTO @InsertedInfo
         VALUES (@DeviceId, @Name, @IsEnabled);
 
         -- Insert into Embedded table
@@ -20,6 +24,7 @@ BEGIN
         VALUES (@IpAddress, @NetworkName, @DeviceId);
 
         COMMIT TRANSACTION;
+        SELECT RowVersion FROM @InsertedInfo;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;

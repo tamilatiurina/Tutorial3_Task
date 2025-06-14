@@ -45,7 +45,15 @@ namespace RESTApi.Controllers
                 return NotFound($"Device with id {id} not found.");
             }
 
-            return Ok(device);
+            var response = new DeviceDto
+            {
+                Id = device.Id,
+                Name = device.Name,
+                Enabled = device.IsEnabled,
+                RowVersion = Convert.ToBase64String(device.RowVersion)
+            };
+
+            return Ok(response);
         }
 
         // POST: api/devices
@@ -124,11 +132,12 @@ namespace RESTApi.Controllers
             try
             {
                 _repository.AddDevice(newDevice, request.DeviceType.ToLower());
-                return CreatedAtAction(nameof(GetDeviceById), new { id = newDevice.Id }, newDevice);
+                var insertedDevice = _repository.GetAllDevices().FirstOrDefault(d => d.Id == newDevice.Id);
+
+                return CreatedAtAction(nameof(GetDeviceById), new { id = insertedDevice.Id }, insertedDevice);
             }
             catch (Exception ex)
             {
-                // You could log ex.Message here
                 return StatusCode(500, "Failed to create device: " + ex.Message);
             }
         }
@@ -177,7 +186,8 @@ namespace RESTApi.Controllers
             {
                 if (_repository.UpdateDevice(device))
                 {
-                    return Ok(device);
+                    var insertedDevice = _repository.GetAllDevices().FirstOrDefault(d => d.Id == device.Id);
+                    return Ok(insertedDevice);
                 }
                 else
                 {

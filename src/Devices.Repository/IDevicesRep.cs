@@ -17,7 +17,7 @@ public interface IDevicesRep
     public void DeleteDevice(string id);
     public string GenerateNextId(string deviceType);
     public List<Device> GetAllDevices();
-    public Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled);
+    public Device GetDetailedDevice(SqlConnection connection, string id, string name, bool isEnabled, byte[] rowVersion);
     public PersonalComputer GetPersonalComputerByDeviceId(SqlConnection connection, string deviceId);
     public Embedded GetEmbeddedByDeviceId(SqlConnection connection, string deviceId);
     public Smartwatch GetSmartwatchByDeviceId(SqlConnection connection, string deviceId);

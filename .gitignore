@@ -53,3 +53,4 @@ src/Tutorial3_Task/bin/
 src/Tutorial3_Task/obj/
 
 .DS_Store
+src/Devices.Infrastructure/
