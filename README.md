@@ -9,7 +9,7 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    "myDB": "Server=YOURSERVER;Database=YOURDB;Trusted_Connection=True;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=YOURSERVER;Database=YOURDB;Trusted_Connection=True;TrustServerCertificate=True;"
   }
 }
 ```
